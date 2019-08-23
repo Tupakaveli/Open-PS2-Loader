@@ -374,7 +374,7 @@ static int lngReadEntry(int index, const char *path, const char *separator, cons
     if (!FIO_S_ISDIR(mode)) {
         if (strstr(name, ".lng") || strstr(name, ".LNG")) {
 
-            language_t *currLang = &languages[index];
+            language_t *currLang = &languages[nLanguages + index];
 
             // filepath for this language file
             int length = strlen(path) + 1 + strlen(name) + 1;
