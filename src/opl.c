@@ -180,7 +180,7 @@ static void itemExecCancel(struct menu_item *curMenu)
 {
     if (!curMenu->current) {
         return;
-	}
+    }
 
     if (!gEnableWrite)
         return;
