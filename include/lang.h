@@ -289,7 +289,7 @@ char *lngGetValue(void);
 void lngEnd(void);
 
 // Indices are shifted in GUI, as we add the internal english language at 0
-void lngSetGuiValue(int langGuiId);
+void lngSetGuiValue(int langID);
 int lngGetGuiValue(void);
 int lngFindGuiID(const char *lang);
 char **lngGetGuiList(void);
