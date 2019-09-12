@@ -682,6 +682,8 @@ static int tryAlternateDevice(int types)
     if ((value = checkLoadConfigHDD(types)) != 0)
         return value;
 
+    showCfgPopup = 0;
+
     // At this point, the user has no loadable config files on any supported device, so try to find a device to save on.
     // We don't want to get users into alternate mode for their very first launch of OPL (i.e no config file at all, but still want to save on MC)
     // Check for a memory card inserted.
@@ -726,6 +728,7 @@ static void _loadConfig()
             configGetColor(configOPL, CONFIG_OPL_UI_TEXTCOLOR, gDefaultUITextColor);
             configGetColor(configOPL, CONFIG_OPL_SEL_TEXTCOLOR, gDefaultSelTextColor);
             configGetInt(configOPL, CONFIG_OPL_USE_INFOSCREEN, &gUseInfoScreen);
+            configGetInt(configOPL, CONFIG_OPL_ENABLE_NOTIFICATIONS, &gEnableNotifications);
             configGetInt(configOPL, CONFIG_OPL_ENABLE_COVERART, &gEnableArt);
             configGetInt(configOPL, CONFIG_OPL_WIDESCREEN, &gWideScreen);
             configGetInt(configOPL, CONFIG_OPL_VMODE, &gVMode);
@@ -888,6 +891,7 @@ static void _saveConfig()
         configSetColor(configOPL, CONFIG_OPL_UI_TEXTCOLOR, gDefaultUITextColor);
         configSetColor(configOPL, CONFIG_OPL_SEL_TEXTCOLOR, gDefaultSelTextColor);
         configSetInt(configOPL, CONFIG_OPL_USE_INFOSCREEN, gUseInfoScreen);
+        configSetInt(configOPL, CONFIG_OPL_ENABLE_NOTIFICATIONS, gEnableNotifications);
         configSetInt(configOPL, CONFIG_OPL_ENABLE_COVERART, gEnableArt);
         configSetInt(configOPL, CONFIG_OPL_WIDESCREEN, gWideScreen);
         configSetInt(configOPL, CONFIG_OPL_VMODE, gVMode);
@@ -999,14 +1003,22 @@ int loadConfig(int types)
 
 int saveConfig(int types, int showUI)
 {
+    char notification[32];
+    char *col_pos;
     lscstatus = types;
     lscret = 0;
 
     guiHandleDeferedIO(&lscstatus, _l(_STR_SAVING_SETTINGS), IO_CUSTOM_SIMPLEACTION, &_saveConfig);
 
     if (showUI) {
-        if (lscret)
-            guiMsgBox(_l(_STR_SETTINGS_SAVED), 0, NULL);
+        if (lscret) {
+            char *path = configGetDir();
+            snprintf(notification, sizeof(notification), _l(_STR_SETTINGS_SAVED), path);
+            if ((col_pos = strchr(notification, ':')) != NULL)
+                *(col_pos + 1) = '\0';
+
+            guiMsgBox(notification, 0, NULL);
+        }
         else
             guiMsgBox(_l(_STR_ERROR_SAVING_SETTINGS), 0, NULL);
     }
@@ -1475,6 +1487,7 @@ static void setDefaults(void)
     gUSBPrefix[0] = '\0';
     gETHPrefix[0] = '\0';
     gUseInfoScreen = 0;
+    gEnableNotifications = 1;
     gEnableArt = 0;
     gWideScreen = 0;
     gEnableSFX = 0;
