@@ -18,7 +18,7 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Network Config",
     "Advanced options",
     "<no values>",
-    "Settings saved...",
+    "Settings saved to %s",
     "Error writing settings!",
     "Exit",
     "Settings",
@@ -275,6 +275,8 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Boot Sound Volume",
     "Confirm video mode change?",
     "Cache Game List (HDD)",
+    "Enable Notifications",
+    "%s Loaded From %s",
 };
 
 static int guiLangID = 0;
@@ -501,4 +503,12 @@ int lngFindGuiID(const char *lang)
 char **lngGetGuiList(void)
 {
     return guiLangNames;
+}
+
+char *lngGetFilePath(int langID)
+{
+    language_t *currLang = &languages[langID - 1];
+    char *path = currLang->filePath;
+
+    return path;
 }
