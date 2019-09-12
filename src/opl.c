@@ -180,7 +180,7 @@ static void itemExecCancel(struct menu_item *curMenu)
 {
     if (!curMenu->current) {
         return;
-	}
+    }
 
     if (!gEnableWrite)
         return;
@@ -1534,7 +1534,7 @@ static void init(void)
 
     startPads();
 
-    //Compatibility update handler
+    // Compatibility update handler
     ioRegisterHandler(IO_COMPAT_UPDATE_DEFFERED, &compatDeferredUpdate);
 
     // handler for deffered menu updates
