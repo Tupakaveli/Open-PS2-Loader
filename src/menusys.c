@@ -467,7 +467,7 @@ static void menuLastPage()
             sfxPlay(SFX_CURSOR);
         }
         while (cur->next)
-            cur = cur->next; // go to end
+            cur = cur->next; // go to endcd $HOME/krah-ps2-loader && make clean && make PADEMU=1
 
         selected_item->item->current = cur;
 
@@ -687,7 +687,7 @@ void menuHandleInputMenu()
         // execute the item via looking at the id of it
         int id = mainMenuCurrent->item.id;
 
-        sfxPlay(SFX_CURSOR);
+        sfxPlay(SFX_CONFIRM);
 
         if (id == MENU_SETTINGS) {
             if (menuCheckParentalLock() == 0)

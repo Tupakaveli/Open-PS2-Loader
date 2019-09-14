@@ -160,5 +160,6 @@ void configSetVMC(config_set_t *configSet, const char *vmc, int slot);
 void configRemoveVMC(config_set_t *configSet, int slot);
 
 char *configGetDir(void);
+void configPrepareNotifications(char *prefix);
 
 #endif

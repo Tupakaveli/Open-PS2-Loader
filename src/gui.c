@@ -592,6 +592,7 @@ static int guiUIUpdater(int modified)
 void guiShowUIConfig(void)
 {
     curTheme = -1;
+    showCfgPopup = 0;
     guiResetNotifications();
 
     // configure the enumerations

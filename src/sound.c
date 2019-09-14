@@ -116,10 +116,12 @@ static int sfxLoad(struct sfxEffect *sfxData, audsrv_adpcm_t *sfx)
 {
     int ret;
 
+    memset(sfx, 0, sizeof(audsrv_adpcm_t));
+
     ret = audsrv_load_adpcm(sfx, sfxData->buffer, sfxData->size);
     if (sfxData->builtin == 0) {
-		free(sfxData->buffer);
-		sfxData->buffer = NULL; //Mark the buffer as freed.
+        free(sfxData->buffer);
+        sfxData->buffer = NULL; //Mark the buffer as freed.
     }
 
     return ret;
@@ -201,6 +203,8 @@ int sfxInit(void)
     {
         if (thmSfxEnabled)
         {
+            //memset(&sfx[i], 0, sizeof(audsrv_adpcm_t));
+            //memset(sfx_files[i].buffer, 0, sizeof(sfx_files[i].buffer));
             snprintf(full_path, sizeof(full_path), "%s/%s", sound_path, sfx_files[i].name);
             ret = sfxRead(full_path, &sfx_files[i]);
             if (ret != 0)

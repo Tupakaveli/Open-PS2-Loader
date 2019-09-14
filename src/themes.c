@@ -1183,7 +1183,7 @@ static void thmRebuildGuiNames(void)
     if (guiThemesNames)
         free(guiThemesNames);
 
-    // build the languages name list
+    // build the themes name list
     guiThemesNames = (const char **)malloc((nThemes + 2) * sizeof(char **));
 
     // add default internal
