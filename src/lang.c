@@ -293,7 +293,7 @@ char *_l(unsigned int id)
     return lang_strs[id];
 }
 
-static void lngFreeFromFile(void)
+static void lngFreeFromFile(char **lang_strs)
 {
     if (guiLangID == 0)
         return;
@@ -333,10 +333,12 @@ static int lngLoadFromFile(char *path, char *name)
     file_buffer_t *fileBuffer = openFileBuffer(path, O_RDONLY, 1, 1024);
     if (fileBuffer) {
         // file exists, try to read it and load the custom lang
-        lang_strs = (char **)malloc(LANG_STR_COUNT * sizeof(char **));
+        char **curL = lang_strs;
+        char **newL = (char **)malloc(LANG_STR_COUNT * sizeof(char **));
+        memset(newL, 0, sizeof(char **));
 
         int strId = 0;
-        while (strId < LANG_STR_COUNT && readFileBuffer(fileBuffer, &lang_strs[strId])) {
+        while (strId < LANG_STR_COUNT && readFileBuffer(fileBuffer, &newL[strId])) {
             strId++;
         }
         closeFileBuffer(fileBuffer);
@@ -349,7 +351,7 @@ static int lngLoadFromFile(char *path, char *name)
         // if necessary complete lang with default internal
         while (strId < LANG_STR_COUNT) {
             LOG("LANG Default entry added: %s\n", internalEnglish[strId]);
-            lang_strs[strId] = internalEnglish[strId];
+            newL[strId] = internalEnglish[strId];
             strId++;
         }
 
@@ -358,6 +360,9 @@ static int lngLoadFromFile(char *path, char *name)
         dir[len] = '\0';
 
         lngLoadFont(dir, name);
+
+        lang_strs = newL;
+        lngFreeFromFile(curL);
 
         return 1;
     }
@@ -420,7 +425,7 @@ static void lngRebuildLangNames(void)
     guiLangNames[nLanguages + 1] = NULL;
 }
 
-int lngAddLanguages(char *path, const char *separator)
+int lngAddLanguages(char *path, const char *separator, int mode)
 {
     int result;
 
@@ -430,7 +435,8 @@ int lngAddLanguages(char *path, const char *separator)
 
     const char *temp;
     if (configGetStr(configGetByType(CONFIG_OPL), "language_text", &temp)) {
-        lngSetGuiValue(lngFindGuiID(temp));
+        if (lngSetGuiValue(lngFindGuiID(temp)))
+            moduleUpdateMenu(mode, 0, 1);
     }
 
     return result;
@@ -440,12 +446,12 @@ void lngInit(void)
 {
     fntInit();
 
-    lngAddLanguages(gBaseMCDir, "/");
+    lngAddLanguages(gBaseMCDir, "/", -1);
 }
 
 void lngEnd(void)
 {
-    lngFreeFromFile();
+    lngFreeFromFile(lang_strs);
 
     int i = 0;
     for (; i < nLanguages; i++) {
@@ -458,23 +464,23 @@ void lngEnd(void)
     fntEnd();
 }
 
-void lngSetGuiValue(int langID)
+int lngSetGuiValue(int langID)
 {
-    if (guiLangID != langID) {
-
-        lngFreeFromFile();
-
-        if (langID != 0) {
-            language_t *currLang = &languages[langID - 1];
-            if (lngLoadFromFile(currLang->filePath, currLang->name)) {
-                guiLangID = langID;
-                return;
+    if (langID != -1) {
+        if (guiLangID != langID) {
+            if (langID != 0) {
+                language_t *currLang = &languages[langID - 1];
+                if (lngLoadFromFile(currLang->filePath, currLang->name)) {
+                    guiLangID = langID;
+                    return 1;
+                }
             }
-        }
 
-        lang_strs = internalEnglish;
-        guiLangID = 0;
+            lang_strs = internalEnglish;
+            guiLangID = 0;
+        }
     }
+    return 0;
 }
 
 int lngGetGuiValue(void)
