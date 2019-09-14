@@ -117,7 +117,7 @@ static char errorMessage[256];
 
 static opl_io_module_t list_support[MODE_COUNT];
 
-void moduleUpdateMenu(int mode, int themeChanged)
+void moduleUpdateMenu(int mode, int themeChanged, int langChanged)
 {
     if (mode == -1)
         return;
@@ -126,6 +126,9 @@ void moduleUpdateMenu(int mode, int themeChanged)
 
     if (!mod->support)
         return;
+
+    if (langChanged)
+        guiUpdateScreenScale();
 
     // refresh Hints
     menuRemoveHints(&mod->menuItem);
@@ -167,7 +170,8 @@ static void itemExecSelect(struct menu_item *curMenu)
             }
         } else {
             support->itemInit();
-            moduleUpdateMenu(support->mode, 0);
+            moduleUpdateMenu(support->mode, 0, 0);
+
             // Manual refreshing can only be done if either auto refresh is disabled or auto refresh is disabled for the item.
             if (!gAutoRefresh || (support->updateDelay == MENU_UPD_DELAY_NOUPDATE))
                 ioPutRequest(IO_MENU_UPDATE_DEFFERED, &support->mode);
@@ -296,7 +300,7 @@ static void initMenuForListSupport(int mode)
 
     mod->menuItem.hints = NULL;
 
-    moduleUpdateMenu(mode, 0);
+    moduleUpdateMenu(mode, 0, 0);
 
     struct gui_update_t *mc = guiOpCreate(GUI_OP_ADD_MENU);
     mc->menu.menu = &mod->menuItem;
@@ -333,7 +337,7 @@ static void initSupport(item_list_t *itemList, int startMode, int mode, int forc
 
         if (((force_reinit) && (startMode && mod->support->enabled)) || (startMode == START_MODE_AUTO && !mod->support->enabled)) {
             mod->support->itemInit();
-            moduleUpdateMenu(mode, 0);
+            moduleUpdateMenu(mode, 0, 0);
 
             ioPutRequest(IO_MENU_UPDATE_DEFFERED, &mod->support->mode); // can't use mode as the variable will die at end of execution
         }
@@ -968,8 +972,7 @@ void applyConfig(int themeID, int langID)
 
     // theme must be set after color, and lng after theme
     changed = thmSetGuiValue(themeID, changed);
-    if (langID != -1)
-        lngSetGuiValue(langID);
+    int langChanged = lngSetGuiValue(langID);
 
     guiUpdateScreenScale();
 
@@ -977,10 +980,10 @@ void applyConfig(int themeID, int langID)
 
     menuReinitMainMenu();
 
-    moduleUpdateMenu(USB_MODE, changed);
-    moduleUpdateMenu(ETH_MODE, changed);
-    moduleUpdateMenu(HDD_MODE, changed);
-    moduleUpdateMenu(APP_MODE, changed);
+    moduleUpdateMenu(USB_MODE, changed, langChanged);
+    moduleUpdateMenu(ETH_MODE, changed, langChanged);
+    moduleUpdateMenu(HDD_MODE, changed, langChanged);
+    moduleUpdateMenu(APP_MODE, changed, langChanged);
 
 #ifdef __DEBUG
     debugApplyConfig();
@@ -1281,7 +1284,7 @@ static int loadHdldSvr(void)
         toggleSfx = 1;
     }
 
-    //deint audio lib while hdl server is running
+    // deint audio lib while hdl server is running
     audsrv_quit();
 
     // block all io ops, wait for the ones still running to finish
@@ -1579,7 +1582,7 @@ static void deferredAudioInit(void)
     else
         LOG("sfxInit: failed to initialize - %d.\n", ret);
 
-    //boot sound
+    // boot sound
     if (gEnableBootSND) {
         sfxPlay(SFX_BOOT);
     }
