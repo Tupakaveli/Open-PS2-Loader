@@ -74,7 +74,7 @@ int loadConfig(int types);
 int saveConfig(int types, int showUI);
 void applyConfig(int themeID, int langID);
 void menuDeferredUpdate(void *data);
-void moduleUpdateMenu(int mode, int themeChanged);
+void moduleUpdateMenu(int mode, int themeChanged, int langChanged);
 void handleHdlSrv();
 void deinit(int exception, int modeSelected);
 

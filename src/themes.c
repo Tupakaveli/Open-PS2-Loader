@@ -1210,7 +1210,7 @@ int thmAddElements(char *path, const char *separator, int mode)
     if (configGetStr(configGetByType(CONFIG_OPL), "theme", &temp)) {
         LOG("THEMES Trying to set again theme: %s\n", temp);
         if (thmSetGuiValue(thmFindGuiID(temp), 0))
-            moduleUpdateMenu(mode, 1);
+            moduleUpdateMenu(mode, 1, 0);
     }
 
     return result;
