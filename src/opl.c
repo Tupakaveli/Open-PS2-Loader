@@ -109,6 +109,7 @@ static void clearMenuGameList(opl_io_module_t *mdl);
 static void moduleCleanup(opl_io_module_t *mod, int exception, int modeSelected);
 static void reset(void);
 static void deferredAudioInit(void);
+static void deferredBootSound(void);
 
 // frame counter
 static unsigned int frameCounter;
@@ -127,6 +128,7 @@ void moduleUpdateMenu(int mode, int themeChanged, int langChanged)
     if (!mod->support)
         return;
 
+    // refresh font cache
     if (langChanged)
         guiUpdateScreenScale();
 
@@ -152,9 +154,11 @@ void moduleUpdateMenu(int mode, int themeChanged, int langChanged)
         }
     }
 
-    // refresh Cache
-    if (themeChanged)
+    // refresh Cache & sfx
+    if (themeChanged) {
         submenuRebuildCache(mod->subMenu);
+        sfxInit();
+    }
 }
 
 static void itemExecSelect(struct menu_item *curMenu)
@@ -974,6 +978,8 @@ void applyConfig(int themeID, int langID)
     changed = thmSetGuiValue(themeID, changed);
     int langChanged = lngSetGuiValue(langID);
 
+    sfxVolume();
+
     guiUpdateScreenScale();
 
     initAllSupport(0);
@@ -1546,16 +1552,18 @@ static void init(void)
 
     gSelectButton = (InitConsoleRegionData() == CONSOLE_REGION_JAPAN) ? KEY_CIRCLE : KEY_CROSS;
 
+    // queue deffered init of sound effects, which will take place after the preceding initialization steps within the queue are complete.
+    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredAudioInit);
+
     // try to restore config
     _loadConfig();
 
-    // queue deffered init of sound effects, which will take place after the preceding initialization steps within the queue are complete.
-    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredAudioInit);
+    // boot sound is deferred so we can make sure themes are fully loaded before playback.
+    ioPutRequest(IO_CUSTOM_SIMPLEACTION, &deferredBootSound);
 }
 
 static void deferredInit(void)
 {
-
     // inform GUI main init part is over
     struct gui_update_t *id = guiOpCreate(GUI_INIT_DONE);
     guiDeferUpdate(id);
@@ -1576,21 +1584,23 @@ static void deferredAudioInit(void)
         LOG("Failed to initialize audsrv\n");
         LOG("Audsrv returned error string: %s\n", audsrv_get_error_string());
 
-    ret = sfxInit(1);
+    ret = sfxInit();
     if (ret >= 0)
         LOG("sfxInit: %d samples loaded.\n", ret);
     else
         LOG("sfxInit: failed to initialize - %d.\n", ret);
 
-    // boot sound
-    if (gEnableBootSND) {
-        sfxPlay(SFX_BOOT);
-    }
-
     // re-enable sfx if previously disabled (hdl svr)
     if (!gEnableSFX && toggleSfx) {
         gEnableSFX = 1;
         toggleSfx = 0;
+    }
+}
+
+static void deferredBootSound(void)
+{
+    if (gEnableBootSND) {
+        sfxPlay(SFX_BOOT);
     }
 }
 

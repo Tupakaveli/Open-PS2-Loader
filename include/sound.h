@@ -12,7 +12,7 @@ enum SFX {
     SFX_COUNT
 };
 
-int sfxInit(int bootSnd);
+int sfxInit(void);
 void sfxVolume(void);
 void sfxPlay(int id);
 

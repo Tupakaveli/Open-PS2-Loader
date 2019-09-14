@@ -561,9 +561,6 @@ reselect_video_mode:
         diaGetInt(diaUIConfig, UICFG_OVERSCAN, &gOverscan);
 
         applyConfig(themeID, langID);
-        //wait 70ms for confirm sound to finish playing before clearing buffer
-        guiDelay(0070);
-        sfxInit(0);
     }
 
     if (previousVMode != gVMode) {
@@ -1116,7 +1113,6 @@ void guiShowAudioConfig(void)
         diaGetInt(diaAudioConfig, CFG_SFX_VOLUME, &gSFXVolume);
         diaGetInt(diaAudioConfig, CFG_BOOT_SND_VOLUME, &gBootSndVolume);
         applyConfig(-1, -1);
-        sfxVolume();
     }
 }
 

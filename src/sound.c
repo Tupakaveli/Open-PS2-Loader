@@ -133,7 +133,7 @@ static int getFadeDelay(char *sound_path)
     int logoFadeTime = 1400; //fade time from sound call to fade to main in milliseconds
     int byteRate = 176400 / 1000; //sample rate * channels * bits per sample /8 (/1000 to get in milliseconds)
 
-    sprintf(boot_path, "%s/%s", sound_path, sfx_files[SFX_BOOT].name);
+    snprintf(boot_path, sizeof(boot_path), "%s/%s", sound_path, sfx_files[SFX_BOOT].name);
     bootSnd = fopen(boot_path, "rb");
     if (bootSnd == NULL)
     {
@@ -165,13 +165,12 @@ void sfxVolume(void)
 }
 
 //Returns number of audio files successfully loaded, < 0 if an unrecoverable error occurred.
-int sfxInit(int bootSnd)
+int sfxInit(void)
 {
     char sound_path[256];
     char full_path[256];
-    int ret, loaded;
+    int ret, i, loaded;
     int thmSfxEnabled = 0;
-    int i = 1;
 
     audsrv_adpcm_init();
 
@@ -193,21 +192,16 @@ int sfxInit(int bootSnd)
         fileXioDclose(fd);
     }
 
-    //boot sound only needs to be read/loaded at init
-    if (bootSnd) {
-        i = 0;
-        ret = getFadeDelay(sound_path);
-        if (ret != 0) {
-            gFadeDelay = 1200;
-        }
-    }
+    ret = getFadeDelay(sound_path);
+    if (ret != 0)
+        gFadeDelay = 1200;
 
     loaded = 0;
-    for (; i < SFX_COUNT; i++)
+    for (i = 0; i < SFX_COUNT; i++)
     {
         if (thmSfxEnabled)
         {
-            sprintf(full_path, "%s/%s", sound_path, sfx_files[i].name);
+            snprintf(full_path, sizeof(full_path), "%s/%s", sound_path, sfx_files[i].name);
             ret = sfxRead(full_path, &sfx_files[i]);
             if (ret != 0)
             {
