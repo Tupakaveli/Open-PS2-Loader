@@ -267,6 +267,8 @@ enum _STR_IDS {
     _STR_BOOT_SND_VOLUME,
     _STR_CFM_VMODE_CHG,
     _STR_CACHE_HDD_GAME_LIST,
+    _STR_ENABLE_NOTIFICATIONS,
+    _STR_NOTIFICATIONS,
 
     LANG_STR_COUNT
 };
@@ -293,5 +295,6 @@ int lngSetGuiValue(int langID);
 int lngGetGuiValue(void);
 int lngFindGuiID(const char *lang);
 char **lngGetGuiList(void);
+char *lngGetFilePath(int langID);
 
 #endif
