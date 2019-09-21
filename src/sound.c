@@ -173,7 +173,7 @@ int sfxInit(void)
     char full_path[256];
     int ret, i, loaded;
     int thmSfxEnabled = 0;
-
+  
     audsrv_adpcm_init();
 
     sfxInitDefaults();
@@ -226,6 +226,7 @@ int sfxInit(void)
 
     return loaded;
 }
+
 
 void sfxPlay(int id)
 {
