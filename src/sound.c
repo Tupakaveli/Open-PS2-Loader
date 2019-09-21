@@ -203,7 +203,7 @@ int sfxInit(void)
     {
         if (thmSfxEnabled)
         {
-            //memset(&sfx[i], 0, sizeof(audsrv_adpcm_t));
+            memset(&sfx[i], 0, sizeof(audsrv_adpcm_t));
             //memset(sfx_files[i].buffer, 0, sizeof(sfx_files[i].buffer));
             snprintf(full_path, sizeof(full_path), "%s/%s", sound_path, sfx_files[i].name);
             ret = sfxRead(full_path, &sfx_files[i]);

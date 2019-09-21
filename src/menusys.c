@@ -16,6 +16,7 @@
 #include "include/system.h"
 #include "include/ioman.h"
 #include "include/sound.h"
+#include "include/guigame.h"
 #include <assert.h>
 
 enum MENU_IDs {
@@ -32,6 +33,18 @@ enum MENU_IDs {
     MENU_POWER_OFF
 };
 
+enum GAME_MENU_IDs {
+    GAME_MODES = 0,
+    GAME_CHEAT_SETTINGS,
+    GAME_GSM_SETTINGS,
+#ifdef PADEMU
+    GAME_PADEMU_SETTINGS,
+#endif
+    GAME_VMC_SETTINGS,
+    GAME_SAVE,
+    GAME_TEST,
+};
+
 // global menu variables
 static menu_list_t *menu;
 static menu_list_t *selected_item;
@@ -46,6 +59,11 @@ static u8 parentalLockCheckEnabled = 1;
 static submenu_list_t *mainMenu;
 // active item in the main menu
 static submenu_list_t *mainMenuCurrent;
+
+// "game settings submenu"
+static submenu_list_t *gameMenu;
+// active item in game settings
+static submenu_list_t *gameMenuCurrent;
 
 static s32 menuSemaId;
 static ee_sema_t menuSema;
@@ -134,6 +152,27 @@ void menuReinitMainMenu(void)
     menuInitMainMenu();
 }
 
+static void menuInitGameMenu(void)
+{
+    if (gameMenu)
+        submenuDestroy(&gameMenu);
+
+    // initialize the menu
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_MODES, _STR_COMPAT_SETTINGS);
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_CHEAT_SETTINGS, _STR_CHEAT_SETTINGS);
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_GSM_SETTINGS, _STR_GSCONFIG);
+#ifdef PADEMU
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_PADEMU_SETTINGS, _STR_PADEMUCONFIG);
+#endif
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_VMC_SETTINGS, _STR_VMC_SCREEN);
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_SAVE, _STR_SAVE_CHANGES);
+    submenuAppendItem(&gameMenu, -1, NULL, GAME_TEST, _STR_TEST);
+
+    gameMenuCurrent = gameMenu;
+
+    guiGameLoadConfig(selected_item->item->userdata);
+}
+
 // -------------------------------------------------------------------------------------------
 // ---------------------------------------- Menu manipulation --------------------------------
 // -------------------------------------------------------------------------------------------
@@ -145,6 +184,8 @@ void menuInit()
     itemConfig = NULL;
     mainMenu = NULL;
     mainMenuCurrent = NULL;
+    gameMenu = NULL;
+    gameMenuCurrent = NULL;
     menuInitMainMenu();
 
     menuSema.init_count = 1;
@@ -171,6 +212,7 @@ void menuEnd()
     }
 
     submenuDestroy(&mainMenu);
+    submenuDestroy(&gameMenu);
 
     if (itemConfig) {
         configFree(itemConfig);
@@ -703,7 +745,7 @@ void menuHandleInputMenu()
               guiShowNetConfig();
         } else if (id == MENU_NET_UPDATE) {
             if (menuCheckParentalLock() == 0)
-              guiShowNetCompatUpdate();
+              guiGameShowNetCompatUpdate();
         } else if (id == MENU_PARENTAL_LOCK) {
             if (menuCheckParentalLock() == 0)
               guiShowParentalLockConfig();
@@ -768,7 +810,8 @@ void menuHandleInputMain()
         else
             selected_item->item->execCross(selected_item->item);
     } else if (getKeyOn(KEY_TRIANGLE)) {
-        selected_item->item->execTriangle(selected_item->item);
+        menuInitGameMenu();
+        guiSwitchScreen(GUI_SCREEN_GAME_MENU);
     } else if (getKeyOn(KEY_CIRCLE)) {
         if (gSelectButton == KEY_CIRCLE && (selected_item->item->current && gUseInfoScreen && gTheme->infoElems.first))
             guiSwitchScreen(GUI_SCREEN_INFO);
@@ -846,5 +889,128 @@ void menuHandleInputInfo()
         menuFirstPage();
     } else if (getKeyOn(KEY_R2)) {
         menuLastPage();
+    }
+}
+
+void menuRenderGameMenu()
+{
+    guiDrawBGPlasma();
+
+    if (!gameMenu)
+        return;
+
+    // draw the animated menu
+    if (!gameMenuCurrent)
+        gameMenuCurrent = gameMenu;
+
+    submenu_list_t *it = gameMenu;
+
+    // calculate the number of items
+    int count = 0;
+    int sitem = 0;
+    for (; it; count++, it = it->next) {
+        if (it == gameMenuCurrent)
+            sitem = count;
+    }
+
+    int spacing = 25;
+    int y = (gTheme->usedHeight >> 1) - (spacing * (count >> 1));
+    int cp = 0; // current position
+
+    // game title
+    fntRenderString(gTheme->fonts[0], 320, 20, ALIGN_CENTER, 0, 0, selected_item->item->current->item.text, gTheme->textColor);
+
+    // config source
+    char *cfgSource = gameConfigSource();
+    fntRenderString(gTheme->fonts[0], 320, 40, ALIGN_CENTER, 0, 0, cfgSource, gTheme->textColor);
+
+    // settings list
+    for (it = gameMenu; it; it = it->next, cp++) {
+        // render, advance
+        fntRenderString(gTheme->fonts[0], 320, y, ALIGN_CENTER, 0, 0, submenuItemGetText(&it->item), (cp == sitem) ? gTheme->selTextColor : gTheme->textColor);
+        y += spacing;
+    }
+
+    // hints
+    int x = 50;
+    y = gTheme->usedHeight - 30;
+    x = guiDrawIconAndText(TRIANGLE_ICON, _STR_DL_DEFAULTS, gTheme->fonts[0], x, y, gTheme->selTextColor);
+    x += spacing;
+    x = guiDrawIconAndText(SQUARE_ICON, _STR_REMOVE_ALL_SETTINGS, gTheme->fonts[0], x, y, gTheme->selTextColor);
+    x += spacing;
+    x = guiDrawIconAndText(gSelectButton == KEY_CIRCLE ? CROSS_ICON : CIRCLE_ICON, _STR_GAMES_LIST, gTheme->fonts[0], x, y, gTheme->selTextColor);
+}
+
+void menuHandleInputGameMenu()
+{
+    item_list_t *support = selected_item->item->userdata;
+
+    if (!gameMenu)
+        return;
+
+    if (!gameMenuCurrent)
+        gameMenuCurrent = gameMenu;
+
+    if (getKey(KEY_UP)) {
+        sfxPlay(SFX_CURSOR);
+        if (gameMenuCurrent->prev)
+            gameMenuCurrent = gameMenuCurrent->prev;
+        else // rewind to the last item
+            while (gameMenuCurrent->next)
+                gameMenuCurrent = gameMenuCurrent->next;
+    }
+
+    if (getKey(KEY_DOWN)) {
+        sfxPlay(SFX_CURSOR);
+        if (gameMenuCurrent->next)
+            gameMenuCurrent = gameMenuCurrent->next;
+        else
+            gameMenuCurrent = gameMenu;
+    }
+
+    if (getKeyOn(gSelectButton)) {
+        // execute the item via looking at the id of it
+        int id = gameMenuCurrent->item.id;
+
+        sfxPlay(SFX_CONFIRM);
+
+        if (id == GAME_MODES) {
+            guiGameShowModesConfig(support);
+        } else if (id == GAME_CHEAT_SETTINGS) {
+            guiGameShowCheatConfig();
+        } else if (id == GAME_GSM_SETTINGS) {
+            guiGameShowGSConfig();
+#ifdef PADEMU
+        } else if (id == GAME_PADEMU_SETTINGS) {
+            guiGameShowPadEmuConfig();
+#endif
+        } else if (id == GAME_VMC_SETTINGS) {
+            guiGameShowVMCMenu(selected_item->item->current->item.id, support);
+        } else if (id == GAME_SAVE) {
+            guiGameSaveConfig(itemConfig, support);
+            configSetInt(itemConfig, CONFIG_ITEM_CONFIGSOURCE, CONFIG_SOURCE_USER);
+            menuSaveConfig();
+            guiMsgBox(_l(_STR_GAME_SETTINGS_SAVED), 0, NULL);
+            guiGameLoadConfig(support);
+        } else if (id == GAME_TEST) {
+            guiGameTestSettings(selected_item->item->current->item.id, support, itemConfig);
+        }
+        // so the exit press wont propagate twice
+        readPads();
+    }
+
+    if (getKeyOn(KEY_SQUARE)) {
+        guiGameRemoveSettings(itemConfig);
+        guiGameLoadConfig(support);
+        readPads();
+    }
+
+    if (getKeyOn(KEY_TRIANGLE)) {
+        guiGameShowNetCompatUpdateSingle(selected_item->item->current->item.id, support, itemConfig);
+        readPads();
+    }
+
+    if (getKeyOn(KEY_START) || getKeyOn(gSelectButton == KEY_CIRCLE ? KEY_CROSS : KEY_CIRCLE)) {
+        guiSwitchScreen(GUI_SCREEN_MAIN);
     }
 }

@@ -52,7 +52,7 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Cross",
     "Games List",
     "Game Settings",
-    "Remove all settings",
+    "Remove All Settings",
     "Removed all keys for the game",
     "Scrolling",
     "Slow",
@@ -117,7 +117,7 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Select button",
     "Error, the game is fragmented",
     "Error, could not run the item",
-    "Test",
+    "Test Changes",
     "Leave empty for GUEST auth.",
     "Accurate Reads",
     "Synchronous Mode",
@@ -206,7 +206,7 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Select game cheats",
     "Error: failed to load Cheat File",
     "No cheats found",
-    "Download defaults",
+    "Download Defaults",
     "Network Update",
     "Re-download existing records?",
     "Update failed.",
@@ -277,6 +277,9 @@ static char *internalEnglish[LANG_STR_COUNT] = {
     "Cache Game List (HDD)",
     "Enable Notifications",
     "%s Loaded From %s",
+    "Game Settings Saved",
+    "Game Settings Removed",
+
 };
 
 static int guiLangID = 0;

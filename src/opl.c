@@ -220,26 +220,6 @@ static void itemExecCross(struct menu_item *curMenu)
         itemExecCancel(curMenu);
 }
 
-static void itemExecTriangle(struct menu_item *curMenu)
-{
-    if (!curMenu->current)
-        return;
-
-    item_list_t *support = curMenu->userdata;
-
-    if (support) {
-        if (!(support->flags & MODE_FLAG_NO_COMPAT)) {
-            if (menuCheckParentalLock() == 0) {
-                config_set_t *configSet = menuLoadConfig();
-                sfxPlay(SFX_TRANSITION);
-                if (guiShowCompatConfig(curMenu->current->item.id, support, configSet) == COMPAT_TEST)
-                    support->itemLaunch(curMenu->current->item.id, configSet);
-            }
-        }
-    } else
-        guiMsgBox("NULL Support object. Please report", 0, NULL);
-}
-
 static void itemExecSquare(struct menu_item *curMenu)
 {
     if (!curMenu->current)
@@ -298,7 +278,7 @@ static void initMenuForListSupport(int mode)
 
     mod->menuItem.refresh = &itemExecRefresh;
     mod->menuItem.execCross = &itemExecCross;
-    mod->menuItem.execTriangle = &itemExecTriangle;
+    mod->menuItem.execTriangle = NULL;
     mod->menuItem.execSquare = &itemExecSquare;
     mod->menuItem.execCircle = &itemExecCircle;
 
@@ -1498,7 +1478,7 @@ static void setDefaults(void)
     gUSBPrefix[0] = '\0';
     gETHPrefix[0] = '\0';
     gUseInfoScreen = 0;
-    gEnableNotifications = 1;
+    gEnableNotifications = 0;
     gEnableArt = 0;
     gWideScreen = 0;
     gEnableSFX = 0;
