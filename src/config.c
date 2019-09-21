@@ -160,7 +160,7 @@ char *configGetDir(void)
     return path;
 }
 
-static void configPrepareNotifications(char *prefix)
+void configPrepareNotifications(char *prefix)
 {
     int mcID;
 

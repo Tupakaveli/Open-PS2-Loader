@@ -686,13 +686,14 @@ static int tryAlternateDevice(int types)
     if ((value = checkLoadConfigHDD(types)) != 0)
         return value;
 
-    showCfgPopup = 0;
-
     // At this point, the user has no loadable config files on any supported device, so try to find a device to save on.
     // We don't want to get users into alternate mode for their very first launch of OPL (i.e no config file at all, but still want to save on MC)
     // Check for a memory card inserted.
-    if (sysCheckMC() >= 0)
+    if (sysCheckMC() >= 0) {
+        configPrepareNotifications(gBaseMCDir);
+        showCfgPopup = 0;
         return 0;
+    }
     // No memory cards? Try a USB device...
     value = fileXioDopen("mass0:");
     if (value >= 0) {
@@ -708,6 +709,7 @@ static int tryAlternateDevice(int types)
             configInit("pfs0:");
         }
     }
+    showCfgPopup = 0;
 
     return 0;
 }
