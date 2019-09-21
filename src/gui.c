@@ -20,9 +20,7 @@
 #include "include/compatupd.h"
 #include "include/pggsm.h"
 #include "include/cheatman.h"
-
 #include "include/sound.h"
-#include <audsrv.h>
 
 #ifdef PADEMU
 #include <libds34bt.h>
@@ -1104,14 +1102,14 @@ void guiShowParentalLockConfig(void)
 
 void guiShowAudioConfig(void)
 {
-	int ret;
+    int ret;
 
     diaSetInt(diaAudioConfig, CFG_SFX, gEnableSFX);
     diaSetInt(diaAudioConfig, CFG_BOOT_SND, gEnableBootSND);
     diaSetInt(diaAudioConfig, CFG_SFX_VOLUME, gSFXVolume);
     diaSetInt(diaAudioConfig, CFG_BOOT_SND_VOLUME, gBootSndVolume);
 
-    ret = diaExecuteDialog(diaAudioConfig, -1, 1, &guiUpdater);
+    ret = diaExecuteDialog(diaAudioConfig, -1, 1, NULL);
     if (ret) {
         diaGetInt(diaAudioConfig, CFG_SFX, &gEnableSFX);
         diaGetInt(diaAudioConfig, CFG_BOOT_SND, &gEnableBootSND);
@@ -2106,8 +2104,8 @@ void guiIntroLoop(void)
 {
     int endIntro = 0;
 
-     if (gEnableSFX && gEnableBootSND)
-         toggleSfx = -1;
+    if (gEnableSFX && gEnableBootSND)
+        toggleSfx = -1;
 
     while (!endIntro) {
         guiStartFrame();
