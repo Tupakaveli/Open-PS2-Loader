@@ -216,6 +216,7 @@ int sfxInit(int bootSnd)
     return loaded;
 }
 
+
 void sfxPlay(int id)
 {
     if (gEnableSFX) {
