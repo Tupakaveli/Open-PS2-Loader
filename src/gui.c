@@ -284,7 +284,6 @@ static void guiShowNotifications(void)
 {
     int y = 10;
     int yadd = 35;
-    
 
     if (showThmPopup || showLngPopup || showCfgPopup)
         popupTimer++;
