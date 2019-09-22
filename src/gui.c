@@ -264,13 +264,26 @@ static void guiResetNotifications(void)
     showLngPopup = 0;
 }
 
+static void guiRenderNotifications(char *notification, char *type, char *path, int y)
+{
+    char *col_pos;
+    int x;
+
+    snprintf(notification, sizeof(notification), _l(_STR_NOTIFICATIONS), type, path);
+    if ((col_pos = strchr(notification, ':')) != NULL)
+        *(col_pos + 1) = '\0';
+
+    x = screenWidth - rmUnScaleX(fntCalcDimensions(gTheme->fonts[0], notification)) - 10;
+
+    rmDrawRect(x, y, screenWidth - x, MENU_ITEM_HEIGHT + 10, gColDarker);
+    fntRenderString(gTheme->fonts[0], x + 5, y + 5, ALIGN_NONE, 0, 0, notification, gTheme->textColor);
+}
+
 static void guiShowNotifications(void)
 {
-    int x;
     int y = 10;
     int yadd = 35;
     char notification[32];
-    char *col_pos;
 
     if (showThmPopup || showLngPopup || showCfgPopup)
         popupTimer++;
@@ -282,40 +295,19 @@ static void guiShowNotifications(void)
 
     if (showCfgPopup && popupTimer >= 20) {
         char *path = configGetDir();
-        snprintf(notification, sizeof(notification), _l(_STR_NOTIFICATIONS), "CFG", path);
-        if ((col_pos = strchr(notification, ':')) != NULL)
-            *(col_pos + 1) = '\0';
-
-        x = screenWidth - rmUnScaleX(fntCalcDimensions(gTheme->fonts[0], notification)) - 10;
-
-        rmDrawRect(x, y, screenWidth - x, MENU_ITEM_HEIGHT + 10, gColDarker);
-        fntRenderString(gTheme->fonts[0], x + 5, y + 5, ALIGN_NONE, 0, 0, notification, gTheme->textColor);
+        guiRenderNotifications(notification, "CFG", path, y);
     }
     y += yadd;
 
     if (showThmPopup && popupTimer >= 20) {
         char *path = thmGetFilePath(thmGetGuiValue());
-        snprintf(notification, sizeof(notification), _l(_STR_NOTIFICATIONS), "THM", path);
-        if ((col_pos = strchr(notification, ':')) != NULL)
-            *(col_pos + 1) = '\0';
-
-        x = screenWidth - rmUnScaleX(fntCalcDimensions(gTheme->fonts[0], notification)) - 10;
-
-        rmDrawRect(x, y, screenWidth - x, MENU_ITEM_HEIGHT + 10, gColDarker);
-        fntRenderString(gTheme->fonts[0], x + 5, y + 5, ALIGN_NONE, 0, 0, notification, gTheme->textColor);
+        guiRenderNotifications(notification, "THM", path, y);
     }
     y += yadd;
 
     if (showLngPopup && popupTimer >= 20) {
         char *path = lngGetFilePath(lngGetGuiValue());
-        snprintf(notification, sizeof(notification), _l(_STR_NOTIFICATIONS), "LNG", path);
-        if ((col_pos = strchr(notification, ':')) != NULL)
-            *(col_pos + 1) = '\0';
-
-        x = screenWidth - rmUnScaleX(fntCalcDimensions(gTheme->fonts[0], notification)) - 10;
-
-        rmDrawRect(x, y, screenWidth - x, MENU_ITEM_HEIGHT + 10, gColDarker);
-        fntRenderString(gTheme->fonts[0], x + 5, y + 5, ALIGN_NONE, 0, 0, notification, gTheme->textColor);
+        guiRenderNotifications(notification, "LNG", path, y);
     }
 
     if (popupTimer >= CLOCKS_PER_SEC / 2000) {
