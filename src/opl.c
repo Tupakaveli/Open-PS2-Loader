@@ -1027,6 +1027,9 @@ int saveConfig(int types, int showUI)
     if (showUI) {
         if (lscret) {
             char *path = configGetDir();
+            if (!strncmp(path, "mc", 2))
+                checkMCFolder();
+
             snprintf(notification, sizeof(notification), _l(_STR_SETTINGS_SAVED), path);
             if ((col_pos = strchr(notification, ':')) != NULL)
                 *(col_pos + 1) = '\0';
